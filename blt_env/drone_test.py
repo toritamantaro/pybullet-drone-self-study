@@ -290,7 +290,7 @@ if __name__ == "__main__":
     '''
     If you want to run this module by itself, try the following.
 
-       $ python -m env.simple_env
+       $ python -m blt_env.simple_env
 
     '''
 
@@ -308,7 +308,7 @@ if __name__ == "__main__":
 
     env.printout_drone_properties()
 
-    # env = DroneDynamicsEnv(
+    # blt_env = DroneDynamicsEnv(
     #     urdf_path=urdf_file,
     #     d_type=drone_type,
     #     gui=True,

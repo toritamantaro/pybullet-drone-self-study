@@ -1,7 +1,7 @@
 import time
 from util.data_tools import DroneType, PhysicsType
 
-from env.drone_test import BulletSimTest
+from blt_env.drone_test import BulletSimTest
 
 from util.data_logger import DroneDataLogger
 import numpy as np
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
 
     ## Logger to store drone status (optional).
-    # d_log = DroneDataLogger(num_drones=1, freq_hz=sim_freq, duration_sec=0, )
+    d_log = DroneDataLogger(num_drones=1, freq_hz=sim_freq, duration_sec=0, )
 
     step_num = 1_000
     for i in range(step_num):
@@ -56,11 +56,11 @@ if __name__ == "__main__":
         rpms = np.array(get_gui_values())
 
         ## Logger to store drone status (optional).
-        # d_log.log(drone_id=0, time_stamp=(i / sim_freq), state=ki, )
+        d_log.log(drone_id=0, time_stamp=(i / sim_freq), state=ki, )
 
         time.sleep(1 / sim_freq)
 
     ## Logger to store drone status (optional).
-    # d_log.plot()
+    d_log.plot()
 
     env.close()
