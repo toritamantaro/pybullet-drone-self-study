@@ -290,7 +290,7 @@ if __name__ == "__main__":
     '''
     If you want to run this module by itself, try the following.
 
-       $ python -m blt_env.simple_env
+       $ python -m blt_env.drone_test
 
     '''
 
@@ -302,17 +302,8 @@ if __name__ == "__main__":
     env = BulletSimTest(
         urdf_path=urdf_file,
         d_type=drone_type,
-        gui=True,
-        phy_mode=phy_mode,
+        phy_mode=phy_mode
     )
-
-    env.printout_drone_properties()
-
-    # blt_env = DroneDynamicsEnv(
-    #     urdf_path=urdf_file,
-    #     d_type=drone_type,
-    #     gui=True,
-    # )
 
     rpms = np.array([14300, 14300, 14300, 14300])
 
