@@ -42,13 +42,14 @@ class DroneDataLogger(object):
     def log_numpy(self,
                   drone_id: int,  # Id of the drone associated to the log entry.
                   time_stamp: float,  # Timestamp of the log in simulation clock.
-                  state: np.ndarray,
+                  state_action: np.ndarray,
                   target: np.ndarray = np.zeros(12),
                   ):
-        assert (drone_id >= 0) and (drone_id <= self._num_drones - 1), print('hoge')
-        assert time_stamp >= 0, print('hoge')
-        assert (isinstance(state, np.ndarray)) and (state.shape == (16,)), print('hoge')
-        assert (isinstance(target, np.ndarray)) and (target.shape == (12,)), print('hoge')
+        cls_name = self.__class__.__name__
+        assert (drone_id >= 0) and (drone_id <= self._num_drones - 1), f"{cls_name}:{drone_id}:Invalid drone id."
+        assert time_stamp >= 0, f"{cls_name}:{time_stamp}: Invalid time_stamp."
+        assert (isinstance(state_action, np.ndarray)) and (state_action.shape == (16,)), f"{cls_name}:{len(state_action)}:Invalid state."
+        assert (isinstance(target, np.ndarray)) and (target.shape == (12,)), f"{cls_name}:{len(target)}:Invalid target."
 
         current_counter = int(self._counters[drone_id])
         # Add rows to the matrices if a counter exceeds their size
@@ -62,7 +63,7 @@ class DroneDataLogger(object):
         # Log the information and increase the counter
         self._time_stamps[drone_id, current_counter] = time_stamp
 
-        self._states[drone_id, :, current_counter] = state
+        self._states[drone_id, :, current_counter] = state_action
         self._targets[drone_id, :, current_counter] = target
         self._counters[drone_id] = current_counter + 1
 
@@ -71,6 +72,7 @@ class DroneDataLogger(object):
             drone_id: int,  # Id of the drone associated to the log entry.
             time_stamp: float,  # Timestamp of the log in simulation clock.
             state: DroneKinematicInfo,
+            action: np.ndarray = np.zeros(4),
             target: DroneControlTarget = DroneControlTarget(),
     ):
         """
@@ -79,6 +81,7 @@ class DroneDataLogger(object):
         drone_id
         time_stamp
         state
+        action : 4 rotors rpm
         target : If not specified, dummy target data will be stored.
         """
 
@@ -95,10 +98,10 @@ class DroneDataLogger(object):
             state.ang_vel[0],  # ang_vel_x
             state.ang_vel[1],  # ang_vel_y
             state.ang_vel[2],  # ang_vel_z
-            state.rotor_rpm[0],  # rotor_0 rpm
-            state.rotor_rpm[1],  # rotor_1 rpm
-            state.rotor_rpm[2],  # rotor_2 rpm
-            state.rotor_rpm[3],  # rotor_3 rpm
+            action[0],  # rotor_0 rpm
+            action[1],  # rotor_1 rpm
+            action[2],  # rotor_2 rpm
+            action[3],  # rotor_3 rpm
         ])
 
         target_np = np.array([
@@ -119,7 +122,7 @@ class DroneDataLogger(object):
         self.log_numpy(
             drone_id=drone_id,
             time_stamp=time_stamp,
-            state=state_np,
+            state_action=state_np,
             target=target_np,
         )
 

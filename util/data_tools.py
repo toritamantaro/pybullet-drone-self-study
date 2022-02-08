@@ -71,7 +71,6 @@ class DroneKinematicInfo(object):
     vel: np.ndarray = np.zeros(3)  # linear velocity
     ang_vel: np.ndarray = np.zeros(3)  # angular velocity
     rpy_rates: np.ndarray = np.zeros(3)  # roll, pitch, and yaw rates
-    rotor_rpm: np.ndarray = np.zeros(4)  # rpm of each rotor
 
 
 @dataclass

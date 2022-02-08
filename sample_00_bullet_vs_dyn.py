@@ -28,9 +28,9 @@ if __name__ == "__main__":
     max_rpm = dp.max_rpm
     hover_rpm = dp.hover_rpm
 
-    rpms = np.array([hover_rpm, hover_rpm, hover_rpm, hover_rpm])
+    rpm = hover_rpm * np.ones(4)
+    print(rpm)
 
-    print(rpms)
     print('max', max_rpm, hover_rpm)
     sld_r0 = p.addUserDebugParameter(f"rotor 0 rpm", 0, max_rpm, hover_rpm)
     sld_r1 = p.addUserDebugParameter(f"rotor 1 rpm", 0, max_rpm, hover_rpm)
@@ -51,12 +51,12 @@ if __name__ == "__main__":
 
     step_num = 1_000
     for i in range(step_num):
-        ki = env.step(rpms)
+        ki = env.step(rpm)
 
-        rpms = np.array(get_gui_values())
+        rpm = np.array(get_gui_values())
 
         ## Logger to store drone status (optional).
-        # d_log.log(drone_id=0, time_stamp=(i / sim_freq), state=ki, )
+        # d_log.log(drone_id=0, time_stamp=(i / sim_freq), state=ki, action=rpm)
 
         time.sleep(1 / sim_freq)
 
