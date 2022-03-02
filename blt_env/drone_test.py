@@ -72,7 +72,6 @@ class BulletSimTest(object):
             vel : linear velocity
             ang_vel : angular velocity
             rpy_rate :  roll, pitch, and yaw rates
-            rotor_rpm:  rpm of each rotor
         '''
         self._ki = DroneKinematicInfo()
         self.update_drones_kinematic_info()  # Update the information before running the simulations.

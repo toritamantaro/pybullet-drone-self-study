@@ -1,37 +1,8 @@
-from typing import List, Dict, Optional, Tuple
-from dataclasses import dataclass, field, astuple, asdict
-import math
+from typing import List, Optional
+from dataclasses import dataclass, field
 from enum import IntEnum, Enum
 
 import numpy as np
-
-
-def get_values_list(data: dataclass) -> Optional[List]:
-    if data is None:
-        return
-    return list(astuple(data))
-
-
-def get_values_csv(data: dataclass) -> Optional[str]:
-    v_list = get_values_list(data)
-    if v_list is None:
-        return
-    return ','.join(map(str, v_list))
-
-
-def get_keys_list(data: dataclass) -> Optional[List]:
-    if data is None:
-        return
-    data_dic = asdict(data)
-    return list(data_dic.keys())
-
-
-def get_keys_csv(data: dataclass) -> Optional[str]:
-    k_list = get_keys_list(data)
-    if k_list is None:
-        return
-    return ','.join(map(str, k_list))
-
 
 """
 # @dataclass(init=False, frozen=True)
@@ -43,8 +14,18 @@ class FooBarConstants(object):
     # def __post_init__(self):
     #     self.bar = 'bar_value'  # FrozenInstanceError
     #     object.__setattr__(self, 'foo', 'foo_value') # not get error
-    
+
 """
+
+
+@dataclass(init=False, frozen=True)
+class SharedConstants(object):
+    AGGR_PHY_STEPS: int = 5
+    # for default setting
+    SUCCESS_MODEL_FILE_NAME: str = 'success_model.zip'
+    DEFAULT_OUTPUT_DIR_PATH: str = './result'
+    DEFAULT_DRONE_FILE_PATH: str = './assets/drone_p_01.urdf'
+    DEFAULT_DRONE_TYPE_NAME: str = 'plus'
 
 
 class DroneType(IntEnum):
@@ -63,14 +44,50 @@ class PhysicsType(Enum):
     PYB_GND_DRAG_DW = "pyb_gnd_drag_dw"  # PyBullet physics update with ground effect, drag, and downwash
 
 
+class ActionType(Enum):
+    """Action type enumeration class."""
+    RPM = "rpm"  # RPMS
+    FORCE = "for"  # Desired thrust and torques (force)
+    PID = "pid"  # PID control
+    VEL = "vel"  # Velocity input (using PID control)
+    TUN = "tun"  # Tune the coefficients of a PID controller
+    ONE_D_RPM = "one_d_rpm"  # 1D (identical input to all motors) with RPMs
+    ONE_D_FORCE = "one_d_for"  # 1D (identical input to all motors) with desired thrust and torques
+    ONE_D_PID = "one_d_pid"  # 1D (identical input to all motors) with PID control
+
+
+class RlAlgorithmType(Enum):
+    """Reinforcement Learning type enumeration class."""
+    A2C = 'a2c'
+    PPO = 'ppo'
+    SAC = 'sac'
+    TD3 = 'td3'
+    DDPG = 'ddpg'
+
+
+class ObservationType(Enum):
+    """Observation type enumeration class."""
+    KIN = "kin"  # Kinematics information (pose, linear and angular velocities)
+    RGB = "rgb"  # RGB camera capture in each drone's POV
+
+
+@dataclass(frozen=True)
+class DroneForcePIDCoefficients(object):
+    P_for: np.ndarray = None  # force
+    I_for: np.ndarray = None
+    D_for: np.ndarray = None
+    P_tor: np.ndarray = None  # torque
+    I_tor: np.ndarray = None
+    D_tor: np.ndarray = None
+
+
 @dataclass
-class DroneKinematicInfo(object):
+class DroneKinematicsInfo(object):
     pos: np.ndarray = np.zeros(3)  # position
     quat: np.ndarray = np.zeros(4)  # quaternion
     rpy: np.ndarray = np.zeros(3)  # roll, pitch and yaw
     vel: np.ndarray = np.zeros(3)  # linear velocity
     ang_vel: np.ndarray = np.zeros(3)  # angular velocity
-    rpy_rates: np.ndarray = np.zeros(3)  # roll, pitch, and yaw rates
 
 
 @dataclass
@@ -78,7 +95,7 @@ class DroneControlTarget(object):
     pos: np.ndarray = np.zeros(3)  # position
     vel: np.ndarray = np.zeros(3)  # linear velocity
     rpy: np.ndarray = np.zeros(3)  # roll, pitch and yaw
-    ang_vel: np.ndarray = np.zeros(3)  # angular velocity
+    rpy_rates: np.ndarray = np.zeros(3)  # roll, pitch, and yaw rates
 
 
 @dataclass

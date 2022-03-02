@@ -1,12 +1,12 @@
 from abc import ABCMeta, abstractmethod
 
-from typing import Dict, Optional, List
+from typing import Optional, List
 import re
 import codecs
 
 import xml.etree.ElementTree as XmlEt
 
-from util.data_tools import DroneProperties, DroneType
+from util.data_definition import DroneProperties
 
 from logging import getLogger, NullHandler, StreamHandler, INFO, DEBUG
 
@@ -111,11 +111,6 @@ class DroneUrdfAnalyzer(FileHandler):
         )
 
         return dataset
-
-
-def get_drone_properties(file_path: str, drone_type: DroneType) -> DroneProperties:
-    file_analyzer = DroneUrdfAnalyzer()
-    return file_analyzer.parse(file_path, int(drone_type))
 
 
 if __name__ == "__main__":

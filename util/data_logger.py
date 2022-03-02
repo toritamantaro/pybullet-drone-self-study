@@ -1,11 +1,10 @@
-import os
-from datetime import datetime
+
 
 from cycler import cycler  # color cycle
 import numpy as np
 import matplotlib.pyplot as plt
 
-from util.data_tools import DroneKinematicInfo, DroneControlTarget
+from util.data_definition import DroneKinematicsInfo, DroneControlTarget
 
 
 class DroneDataLogger(object):
@@ -16,11 +15,11 @@ class DroneDataLogger(object):
 
     def __init__(self,
                  num_drones: int,
-                 freq_hz: int,  # logging frequency Hz
-                 duration_sec: float = 0  # logging duration time
+                 logging_freq: int,  # logging frequency [Hz]
+                 logging_duration: float = 0  # logging duration time [sec]
                  ):
-        self._logging_freq = freq_hz
-        self._logging_duration = duration_sec
+        self._logging_freq = logging_freq
+        self._logging_duration = logging_duration
         self._pre_allocated_arrays = False if self._logging_duration == 0 else True
         self._num_drones = num_drones
         self._counters = np.zeros(self._num_drones)
@@ -42,13 +41,13 @@ class DroneDataLogger(object):
     def log_numpy(self,
                   drone_id: int,  # Id of the drone associated to the log entry.
                   time_stamp: float,  # Timestamp of the log in simulation clock.
-                  state_action: np.ndarray,
+                  state_and_rpm: np.ndarray,
                   target: np.ndarray = np.zeros(12),
                   ):
         cls_name = self.__class__.__name__
         assert (drone_id >= 0) and (drone_id <= self._num_drones - 1), f"{cls_name}:{drone_id}:Invalid drone id."
         assert time_stamp >= 0, f"{cls_name}:{time_stamp}: Invalid time_stamp."
-        assert (isinstance(state_action, np.ndarray)) and (state_action.shape == (16,)), f"{cls_name}:{len(state_action)}:Invalid state."
+        assert (isinstance(state_and_rpm, np.ndarray)) and (state_and_rpm.shape == (16,)), f"{cls_name}:{len(state_and_rpm)}:Invalid state."
         assert (isinstance(target, np.ndarray)) and (target.shape == (12,)), f"{cls_name}:{len(target)}:Invalid target."
 
         current_counter = int(self._counters[drone_id])
@@ -62,8 +61,7 @@ class DroneDataLogger(object):
             current_counter = self._time_stamps.shape[1] - 1
         # Log the information and increase the counter
         self._time_stamps[drone_id, current_counter] = time_stamp
-
-        self._states[drone_id, :, current_counter] = state_action
+        self._states[drone_id, :, current_counter] = state_and_rpm
         self._targets[drone_id, :, current_counter] = target
         self._counters[drone_id] = current_counter + 1
 
@@ -71,68 +69,71 @@ class DroneDataLogger(object):
             self,
             drone_id: int,  # Id of the drone associated to the log entry.
             time_stamp: float,  # Timestamp of the log in simulation clock.
-            state: DroneKinematicInfo,
-            action: np.ndarray = np.zeros(4),
-            target: DroneControlTarget = DroneControlTarget(),
+            kin_state: DroneKinematicsInfo,
+            rpm_values: np.ndarray = np.zeros(4),
+            ctrl_target: DroneControlTarget = DroneControlTarget(),
     ):
         """
         Parameters
         ----------
         drone_id
         time_stamp
-        state
-        action : 4 rotors rpm
-        target : If not specified, dummy target data will be stored.
+        kin_state
+        rpm_values : 4 rotors rpm
+        ctrl_target : If not specified, dummy target data will be stored.
         """
 
         state_np = np.array([
-            state.pos[0],  # pos_x
-            state.pos[1],  # pos_y
-            state.pos[2],  # pos_z
-            state.vel[0],  # vel_x
-            state.vel[1],  # vel_y
-            state.vel[2],  # vel_z
-            state.rpy[0],  # roll
-            state.rpy[1],  # pitch
-            state.rpy[2],  # yaw
-            state.ang_vel[0],  # ang_vel_x
-            state.ang_vel[1],  # ang_vel_y
-            state.ang_vel[2],  # ang_vel_z
-            action[0],  # rotor_0 rpm
-            action[1],  # rotor_1 rpm
-            action[2],  # rotor_2 rpm
-            action[3],  # rotor_3 rpm
+            kin_state.pos[0],  # pos_x
+            kin_state.pos[1],  # pos_y
+            kin_state.pos[2],  # pos_z
+            kin_state.vel[0],  # vel_x
+            kin_state.vel[1],  # vel_y
+            kin_state.vel[2],  # vel_z
+            kin_state.rpy[0],  # roll
+            kin_state.rpy[1],  # pitch
+            kin_state.rpy[2],  # yaw
+            kin_state.ang_vel[0],  # ang_vel_x
+            kin_state.ang_vel[1],  # ang_vel_y
+            kin_state.ang_vel[2],  # ang_vel_z
+            rpm_values[0],  # rotor_0 rpm
+            rpm_values[1],  # rotor_1 rpm
+            rpm_values[2],  # rotor_2 rpm
+            rpm_values[3],  # rotor_3 rpm
         ])
 
         target_np = np.array([
-            target.pos[0],  # pos_x
-            target.pos[1],  # pos_y
-            target.pos[2],  # pos_z
-            target.vel[0],  # vel_x
-            target.vel[1],  # vel_y
-            target.vel[2],  # vel_z
-            target.rpy[0],  # roll
-            target.rpy[1],  # pitch
-            target.rpy[2],  # yaw
-            target.ang_vel[0],  # ang_vel_x
-            target.ang_vel[1],  # ang_vel_y
-            target.ang_vel[2],  # ang_vel_z
+            ctrl_target.pos[0],  # pos_x
+            ctrl_target.pos[1],  # pos_y
+            ctrl_target.pos[2],  # pos_z
+            ctrl_target.vel[0],  # vel_x
+            ctrl_target.vel[1],  # vel_y
+            ctrl_target.vel[2],  # vel_z
+            ctrl_target.rpy[0],  # roll
+            ctrl_target.rpy[1],  # pitch
+            ctrl_target.rpy[2],  # yaw
+            # target.ang_vel[0],  # ang_vel_x
+            # target.ang_vel[1],  # ang_vel_y
+            # target.ang_vel[2],  # ang_vel_z
+            ctrl_target.rpy_rates[0],  # rpy_rates_x
+            ctrl_target.rpy_rates[1],  # rpy_rates_y
+            ctrl_target.rpy_rates[2],  # rpy_rates_z
         ])
 
         self.log_numpy(
             drone_id=drone_id,
             time_stamp=time_stamp,
-            state_action=state_np,
+            state_and_rpm=state_np,
             target=target_np,
         )
 
-    def save(self):
-        """Save the logs to file.
-        """
-        with open(os.path.dirname(
-                os.path.abspath(__file__)) + "/../../files/logs/save-flight-" + datetime.now().strftime(
-            "%m.%d.%Y_%H.%M.%S") + ".npy", 'wb') as out_file:
-            np.savez(out_file, timestamps=self._timestamps, states=self._states, controls=self._targets)
+    # def save(self):
+    #     """Save the logs to file.
+    #     """
+    #     with open(os.path.dirname(
+    #             os.path.abspath(__file__)) + "/../../files/logs/save-flight-" + datetime.now().strftime(
+    #         "%m.%d.%Y_%H.%M.%S") + ".npy", 'wb') as out_file:
+    #         np.savez(out_file, timestamps=self._timestamps, states=self._states, controls=self._targets)
 
     def plot(self, pwm=False):
         """Logs entries for a single simulation step, of a single drone.
@@ -147,16 +148,16 @@ class DroneDataLogger(object):
             If True, converts logged RPM into PWM values (for Crazyflies).
 
         """
-        #### Loop over colors and line styles ######################
+        # Loop over colors and line styles
         plt.rc('axes', prop_cycle=(cycler('color', ['r', 'g', 'b', 'y']) + cycler('linestyle', ['-', '--', ':', '-.'])))
         fig, axs = plt.subplots(10, 2)
         t = np.arange(0, self._time_stamps.shape[1] / self._logging_freq, 1 / self._logging_freq)
         t = t[:self._time_stamps.shape[1]]  # keep the lengths even
 
-        #### Column ################################################
+        # Column
         col = 0
 
-        #### XYZ ###################################################
+        # XYZ
         row = 0
         for j in range(self._num_drones):
             axs[row, col].plot(t, self._states[j, 0, :], label="drone_" + str(j))
@@ -175,7 +176,7 @@ class DroneDataLogger(object):
         axs[row, col].set_xlabel('time')
         axs[row, col].set_ylabel('z (m)')
 
-        #### RPY ###################################################
+        # RPY
         row = 3
         for j in range(self._num_drones):
             axs[row, col].plot(t, self._states[j, 6, :], label="drone_" + str(j))
@@ -192,7 +193,7 @@ class DroneDataLogger(object):
         axs[row, col].set_xlabel('time')
         axs[row, col].set_ylabel('y (rad)')
 
-        #### Ang Vel ###############################################
+        # Ang Vel
         row = 6
         for j in range(self._num_drones):
             axs[row, col].plot(t, self._states[j, 9, :], label="drone_" + str(j))
@@ -209,16 +210,16 @@ class DroneDataLogger(object):
         axs[row, col].set_xlabel('time')
         axs[row, col].set_ylabel('wz')
 
-        #### Time ##################################################
+        # Time
         row = 9
         axs[row, col].plot(t, t, label="time")
         axs[row, col].set_xlabel('time')
         axs[row, col].set_ylabel('time')
 
-        #### Column ################################################
+        # Column
         col = 1
 
-        #### Velocity ##############################################
+        # Velocity
         row = 0
         for j in range(self._num_drones):
             axs[row, col].plot(t, self._states[j, 3, :], label="drone_" + str(j))
@@ -235,7 +236,7 @@ class DroneDataLogger(object):
         axs[row, col].set_xlabel('time')
         axs[row, col].set_ylabel('vz (m/s)')
 
-        #### RPY Rates #############################################
+        # RPY Rates
         row = 3
         for j in range(self._num_drones):
             rdot = np.hstack([0, (self._states[j, 6, 1:] - self._states[j, 6, 0:-1]) * self._logging_freq])
@@ -255,14 +256,13 @@ class DroneDataLogger(object):
         axs[row, col].set_xlabel('time')
         axs[row, col].set_ylabel('ydot (rad/s)')
 
-        ### This IF converts RPM into PWM for all drones ###########
-        #### except drone_0 (only used in examples/compare.py) #####
+        # This IF converts RPM into PWM for all drones
         for j in range(self._num_drones):
             for i in range(12, 16):
                 if pwm and j > 0:
                     self._states[j, i, :] = (self._states[j, i, :] - 4070.3) / 0.2685
 
-        #### RPMs ##################################################
+        # RPMs
         row = 6
         for j in range(self._num_drones):
             axs[row, col].plot(t, self._states[j, 12, :], label="drone_" + str(j))
@@ -296,7 +296,7 @@ class DroneDataLogger(object):
         else:
             axs[row, col].set_ylabel('RPM3')
 
-        #### Drawing options #######################################
+        # Drawing options
         for i in range(10):
             for j in range(2):
                 axs[i, j].grid(True)
