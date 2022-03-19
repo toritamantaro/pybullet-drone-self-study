@@ -24,8 +24,8 @@ class SharedConstants(object):
     # for default setting
     SUCCESS_MODEL_FILE_NAME: str = 'success_model.zip'
     DEFAULT_OUTPUT_DIR_PATH: str = './result'
-    DEFAULT_DRONE_FILE_PATH: str = './assets/drone_p_01.urdf'
-    DEFAULT_DRONE_TYPE_NAME: str = 'plus'
+    DEFAULT_DRONE_FILE_PATH: str = './assets/drone_x_01.urdf'
+    DEFAULT_DRONE_TYPE_NAME: str = 'x'
 
 
 class DroneType(IntEnum):

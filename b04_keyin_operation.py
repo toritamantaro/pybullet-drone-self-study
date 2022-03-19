@@ -3,17 +3,16 @@ import numpy as np
 from util.data_definition import DroneForcePIDCoefficients
 from util.data_definition import DroneType, PhysicsType
 from util.data_definition import DroneControlTarget
-
 from blt_env.drone import DroneBltEnv
 from control.drone_ctrl import DSLPIDControl
-
-# Logger class to store drone status (optional).
+from util.external_input import KeyboardInputCtrl
+from dev.bullet_cam import BulletCameraDevice, compute_view_matrix_from_cam_location
 from util.data_logger import DroneDataLogger
 
 if __name__ == "__main__":
 
     # Initialize the PyBullet simulation environment.
-    init_xyzs = np.array([[.5, 0, 1], [-.5, 0, .5]])
+    init_xyzx = np.array([[.5, 0, 1], [-.5, 0, .5]])
     aggr_phy_steps = 5
     num_drone = 2
     urdf_file = './assets/drone_x_01.urdf'
@@ -27,29 +26,22 @@ if __name__ == "__main__":
         phy_mode=phy_mode,
         is_gui=True,
         aggr_phy_steps=aggr_phy_steps,
-        init_xyzs=init_xyzs,
+        init_xyzs=init_xyzx,
         is_real_time_sim=True,
     )
 
-    # Initialize the simulation aviary.
-    eps_sec = 20
-    period = 5
-    action_freq = blt_env.get_sim_freq() / blt_env.get_aggr_phy_steps()
-    num_wp = int(action_freq * period)
-    target_pos = np.zeros((num_drone, num_wp, 3))
-    for i in range(num_wp):
-        target_pos[0, i, :] = [
-            0.5 * np.cos(2 * np.pi * (i / num_wp)),
-            0.5 * np.sin(2 * np.pi * (i / num_wp)),
-            init_xyzs[0, 2] + (np.cos(4 * np.pi * (i / num_wp)) - 1) * 0.25,
-        ]
-        target_pos[1, i, :] = [
-            0.5 * np.cos(2 * np.pi * (i / num_wp)),
-            -0.5 * np.sin(2 * np.pi * (i / num_wp)),
-            init_xyzs[1, 2] + (1 - np.cos(4 * np.pi * (i / num_wp))) * 0.25,
-        ]
+    # Initialize the camera.
+    my_camera = BulletCameraDevice(
+        res_w=640,
+        res_h=480,
+        z_near=0.01,
+        z_far=10.0,
+        fov_w=50,
+    )
 
-    wp_counters = np.array([0, int(num_wp / 2)])
+    # Initialize the simulation aviary.
+    eps_sec = 30
+    action_freq = blt_env.get_sim_freq() / blt_env.get_aggr_phy_steps()
 
     # Initialize the logger (optional).
     d_log = DroneDataLogger(
@@ -79,25 +71,39 @@ if __name__ == "__main__":
     ctrl_event_n_steps = aggr_phy_steps
     action = np.array([np.array([0, 0, 0, 0]) for i in range(num_drone)])
 
+    # Initialize the keyboard controller.
+    target_drone_id = 0
+    key_ctrl = KeyboardInputCtrl(blt_env=blt_env, nth_drone=target_drone_id)
+
     for i in range(0, int(eps_sec * blt_env.get_sim_freq()), aggr_phy_steps):
-        # Step the simulation.
+        # Step the simulation
         kis = blt_env.step(action)
 
-        # Compute control at the desired frequency.
+        # Compute control at the desired frequency
         if i % ctrl_event_n_steps == 0:
-            # Compute control for the current way point.
+            # Compute control target from keyin.
+            ctrl_target = key_ctrl.get_ctrl_target()
+
             for j in range(num_drone):
+                ki = kis[j]
+                if j != target_drone_id:
+                    ctrl_target = DroneControlTarget(
+                        pos=np.array(init_xyzx[j]),
+                        vel=np.zeros(3),
+                        rpy=np.zeros(3),
+                    )
+
                 action[j], _, _ = ctrls[j].compute_control_from_kinematics(
                     control_timestep=ctrl_event_n_steps * blt_env.get_sim_time_step(),
-                    kin_state=kis[j],
-                    ctrl_target=DroneControlTarget(
-                        pos=target_pos[j, wp_counters[j], :],
-                    ),
+                    kin_state=ki,
+                    ctrl_target=ctrl_target,
                 )
 
-            # Go to the next way point and loop
-            for j in range(num_drone):
-                wp_counters[j] = wp_counters[j] + 1 if wp_counters[j] < (num_wp - 1) else 0
+            # Cam capture.
+            cam_pos = kis[0].pos + np.array([0, 0, 0.02])
+            cam_quat = kis[0].quat
+            view_mat = compute_view_matrix_from_cam_location(cam_pos=cam_pos, cam_quat=cam_quat, )
+            _, _, _ = my_camera.cam_capture(view_mat)
 
         # Log the simulation (optional).
         rpms = blt_env.get_last_rpm_values()
@@ -109,11 +115,8 @@ if __name__ == "__main__":
                 rpm_values=rpms[j],
             )
 
-    # Close the environment
+    # Close the environment.
     blt_env.close()
 
     # Plot the simulation results (optional).
     d_log.plot()
-
-
-

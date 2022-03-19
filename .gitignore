@@ -57,6 +57,7 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+0_VRDemoSettings.txt
 
 # Translations
 *.mo

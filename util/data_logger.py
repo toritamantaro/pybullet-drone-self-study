@@ -112,9 +112,6 @@ class DroneDataLogger(object):
             ctrl_target.rpy[0],  # roll
             ctrl_target.rpy[1],  # pitch
             ctrl_target.rpy[2],  # yaw
-            # target.ang_vel[0],  # ang_vel_x
-            # target.ang_vel[1],  # ang_vel_y
-            # target.ang_vel[2],  # ang_vel_z
             ctrl_target.rpy_rates[0],  # rpy_rates_x
             ctrl_target.rpy_rates[1],  # rpy_rates_y
             ctrl_target.rpy_rates[2],  # rpy_rates_z
@@ -126,14 +123,6 @@ class DroneDataLogger(object):
             state_and_rpm=state_np,
             target=target_np,
         )
-
-    # def save(self):
-    #     """Save the logs to file.
-    #     """
-    #     with open(os.path.dirname(
-    #             os.path.abspath(__file__)) + "/../../files/logs/save-flight-" + datetime.now().strftime(
-    #         "%m.%d.%Y_%H.%M.%S") + ".npy", 'wb') as out_file:
-    #         np.savez(out_file, timestamps=self._timestamps, states=self._states, controls=self._targets)
 
     def plot(self, pwm=False):
         """Logs entries for a single simulation step, of a single drone.

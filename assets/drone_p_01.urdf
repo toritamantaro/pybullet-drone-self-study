@@ -48,8 +48,8 @@
       <geometry>
         <cylinder radius=".02" length=".015"/>
       </geometry>
-      <material name="light_green">
-        <color rgba="0.0 1.0 0.0 0.5"/>
+      <material name="light_red">
+        <color rgba="1.0 0.0 0.0 0.5"/>
       </material>
     </visual>
   </link>
@@ -69,8 +69,8 @@
       <geometry>
         <cylinder radius=".02" length=".015"/>
       </geometry>
-      <material name="light_red">
-        <color rgba="1.0 0.0 0.0 0.5"/>
+      <material name="light_green">
+        <color rgba="0.0 1.0 0.0 0.5"/>
       </material>
     </visual>
   </link>
@@ -90,8 +90,8 @@
       <geometry>
         <cylinder radius=".02" length=".015"/>
       </geometry>
-      <material name="light_red">
-        <color rgba="1.0 0.0 0.0 0.5"/>
+      <material name="light_green">
+        <color rgba="0.0 1.0 0.0 0.5"/>
       </material>
     </visual>
   </link>
@@ -111,8 +111,8 @@
       <geometry>
         <cylinder radius=".02" length=".015"/>
       </geometry>
-      <material name="light_red">
-        <color rgba="1.0 0.0 0.0 0.5"/>
+      <material name="light_green">
+        <color rgba="0.0 1.0 0.0 0.5"/>
       </material>
     </visual>
   </link>

@@ -562,7 +562,7 @@ class DroneBltEnv(BulletEnv):
         quat = ki.quat
         rpy = ki.rpy
         vel = ki.vel
-        rpy_rates = self._rpy_rates[nth_drone]
+        rpy_rates = self._rpy_rates[nth_drone]  # angular velocity
         rotation = np.array(p.getMatrixFromQuaternion(quat)).reshape(3, 3)
 
         # Compute thrust and torques.
@@ -574,7 +574,7 @@ class DroneBltEnv(BulletEnv):
 
         torques = np.array([x_torque, y_torque, z_torque])
         torques = torques - np.cross(rpy_rates, np.dot(self._dp.J, rpy_rates))
-        rpy_rates_deriv = np.dot(self._dp.J_inv, torques)
+        rpy_rates_deriv = np.dot(self._dp.J_inv, torques)  # angular acceleration
         no_pybullet_dyn_accs = forces_world_frame / self._dp.m
 
         # Update state.
